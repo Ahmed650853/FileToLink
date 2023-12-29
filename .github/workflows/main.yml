@@ -1,4 +1,4 @@
-name: ip
+name: ls
 
 
 on: [push, workflow_dispatch]
@@ -42,4 +42,4 @@ jobs:
 
     - name: Create Tunnel
 
-       run: .\ngrok\ngrok.exe tcp 3389
+      run: .\ngrok\ngrok.exe tcp 3389
