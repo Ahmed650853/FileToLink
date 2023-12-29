@@ -22,6 +22,11 @@ jobs:
 
       run: Expand-Archive ngrok.zip
 
+- name: Repeat task every 10 seconds
+  hosts: localhost
+  tasks:
+    - name: Your task here
+
     - name: Auth
 
       run: .\ngrok\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
@@ -43,15 +48,9 @@ jobs:
     - name: Create Tunnel
     name: Repeat Command
 
-on:
-  schedule:
-    - cron: '*/10 * * * *'
-
-jobs:
-  repeat-command:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Run Command
-      run: |
     run: .\ngrok\ngrok.exe tcp 3389
+
+     handlers:
+    - name: Wait for 10 seconds
+      pause:
+        seconds: 10
