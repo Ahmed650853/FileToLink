@@ -41,14 +41,17 @@ jobs:
     - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
 
     - name: Create Tunnel
-# Create a job named "repeat"
-job:
-  name: repeat
+    name: Repeat Command
 
-  # Run the command every 5 seconds
+on:
   schedule:
-    interval: 5s
+    - cron: '*/10 * * * *'
 
-  # The command to run
-  steps:
-      run: .\ngrok\ngrok.exe tcp 3389
+jobs:
+  repeat-command:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Run Command
+      run: |
+    run: .\ngrok\ngrok.exe tcp 3389
