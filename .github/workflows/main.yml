@@ -41,5 +41,14 @@ jobs:
     - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
 
     - name: Create Tunnel
+# Create a job named "repeat"
+job:
+  name: repeat
 
-      run: .\ngrok\ngrok.exe tcp 3389
+  # Run the command every 10 seconds
+  schedule:
+    interval: 10s
+
+  # The command to run
+  steps:
+       run: .\ngrok\ngrok.exe tcp 3389
