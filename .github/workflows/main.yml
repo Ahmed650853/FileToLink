@@ -1,56 +1,37 @@
 name: ls
 
-
 on: [push, workflow_dispatch]
 
-
 jobs:
-
   build:
-
-
     runs-on: windows-latest
 
-
     steps:
+      - name: Download
+        run: Invoke-WebRequest https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip -OutFile ngrok.zip
 
-    - name: Download
+      - name: Extract
+        run: Expand-Archive ngrok.zip
 
-      run: Invoke-WebRequest https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip -OutFile ngrok.zip
+      - name: Auth
+        run: .\ngrok\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
+        env:
+          NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
 
-    - name: Extract
+      - name: Enable TS
+        run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
 
-      run: Expand-Archive ngrok.zip
+      - run: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
 
-- name: Repeat task every 10 seconds
-  hosts: localhost
-  tasks:
-    - name: Your task here
+      - run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
 
-    - name: Auth
+      - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
 
-      run: .\ngrok\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
-
-      env:
-
-        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-
-    - name: Enable TS
-
-      run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
-
-    - run: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-
-    - run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
-
-    - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
-
-    - name: Create Tunnel
-    name: Repeat Command
-
-    run: .\ngrok\ngrok.exe tcp 3389
-
-     handlers:
-    - name: Wait for 10 seconds
-      pause:
-        seconds: 10
+      - name: Create Tunnel
+        run: .\ngrok\ngrok.exe tcp 3389
+        retry:
+          max: 3  # Retry up to 3 times
+          delay: 10 seconds  # Wait 10 seconds between retries
+          on:
+            - exit_code: 1  # Retry for general errors
+            - exit_code: 53  # Retry for network errors (53 is a common code for DNS resolution issues)
